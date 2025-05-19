@@ -21,7 +21,7 @@ import {
 } from "./ui/form";
 import Link from "next/link";
 
-export function LoginForm({
+export function RegisterForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
@@ -30,20 +30,23 @@ export function LoginForm({
     defaultValues: {
       email: "",
       password: "",
+      name: "",
+      confirmPassword: "",
     },
     mode: "onChange",
   });
 
   const mutation = useMutation({
     mutationFn: async () => {
-      const res = await authClient.signIn.email({
+      const res = await authClient.signUp.email({
         ...form.getValues(),
       });
       if (res.error) {
         toast.error(res.error.message);
         return;
       }
-      router.replace("/");
+      toast.success("Account created successfully");
+      router.replace("/login");
     },
   });
 
@@ -68,13 +71,31 @@ export function LoginForm({
               </a>
               <h1 className="text-xl font-bold">Welcome to Acme Inc.</h1>
               <div className="text-center text-sm">
-                Don&apos;t have an account?{" "}
-                <Link href="/register" className="underline underline-offset-4">
-                  Sign up
+                Already have an account?{" "}
+                <Link href="/login" className="underline underline-offset-4">
+                  Sign in
                 </Link>
               </div>
             </div>
             <div className="flex flex-col gap-6">
+              <FormField
+                control={form.control}
+                name="name"
+                rules={{
+                  required: "Name is required",
+                }}
+                render={({ field }) => {
+                  return (
+                    <FormItem>
+                      <FormLabel>Name</FormLabel>
+                      <FormControl>
+                        <Input {...field} type="text" placeholder="John Doe" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  );
+                }}
+              />
               <FormField
                 control={form.control}
                 name="email"
@@ -139,12 +160,40 @@ export function LoginForm({
                   );
                 }}
               />
+              <FormField
+                control={form.control}
+                name="confirmPassword"
+                rules={{
+                  required: "Confirm password is required",
+                  validate: (value) => {
+                    if (value !== form.getValues("password")) {
+                      return "Passwords do not match";
+                    }
+                    return true;
+                  },
+                }}
+                render={({ field }) => {
+                  return (
+                    <FormItem>
+                      <FormLabel>Password</FormLabel>
+                      <FormControl>
+                        <Input
+                          {...field}
+                          type="password"
+                          placeholder="********"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  );
+                }}
+              />
               <Button
                 type="submit"
                 className="w-full"
                 loading={form.formState.isSubmitting}
               >
-                Login
+                Register
               </Button>
             </div>
           </div>
